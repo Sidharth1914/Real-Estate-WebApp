@@ -1,0 +1,14 @@
+{
+  "name": "real-estate-root",
+  "description": "Real Estate Web Application - Full Stack",
+  "version": "1.0.0",
+  "scripts": {
+    "setup": "concurrently \"cd backend && npm install\" \"cd frontend && npm install\"",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  }
+}
