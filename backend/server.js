@@ -19,7 +19,10 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/real-esta
 }).catch((err) => {
   console.error('❌ MongoDB connection error:', err);
 });
-
+app.use(cors({
+  origin: '*',
+  credentials: true
+}));
 // Routes
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/properties', require('./routes/propertyRoutes'));
