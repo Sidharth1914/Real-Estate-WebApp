@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { propertyAPI } from '../api';
+
 import { sampleProperties } from '../data/sampleProperties';
 
 export default function PropertyList() {

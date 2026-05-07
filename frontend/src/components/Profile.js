@@ -39,10 +39,7 @@ export default function Profile() {
     setMessage('');
 
     try {
-      const updateData = {
-        ...formData,
-        profilePhoto: profilePhoto,
-      };
+      
       await authAPI.getMe(); // Test if token is valid
       setMessage('✅ Profile updated successfully!');
       localStorage.setItem('user', JSON.stringify({ ...user, ...formData }));
