@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { House, CircleNotch, WarningCircle, User, Storefront } from '@phosphor-icons/react';
+import { CircleNotch, WarningCircle, User, Storefront } from '@phosphor-icons/react';
 import { authAPI } from '../api';
+import AuthLayout from './Layout/AuthLayout';
 
 export default function Register() {
   const [formData, setFormData] = useState({ username: '', email: '', password: '', role: 'BUYER' });
@@ -29,18 +30,10 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center bg-stone-50 px-4 py-12">
-      <div className="w-full max-w-sm">
-        <Link to="/" className="flex items-center justify-center gap-2 mb-8">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-700 text-white">
-            <House size={18} weight="fill" />
-          </span>
-          <span className="font-bold text-stone-900">Properties Hub</span>
-        </Link>
-
-        <div className="rounded-2xl border border-stone-200 bg-white p-8 shadow-card">
-          <h1 className="text-2xl font-bold text-stone-900 text-center">Create your account</h1>
-          <p className="mt-1 text-sm text-stone-500 text-center">Join Properties Hub in a minute</p>
+    <AuthLayout tagline="List a property or find one — no agent fees either way.">
+      <div className="rounded-2xl border border-stone-200 bg-white p-8 shadow-card">
+        <h1 className="text-2xl font-bold text-stone-900 text-center">Create your account</h1>
+        <p className="mt-1 text-sm text-stone-500 text-center">Join Properties Hub in a minute</p>
 
           {error && (
             <div className="mt-6 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -125,14 +118,13 @@ export default function Register() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-stone-500">
-            Already have an account?{' '}
-            <Link to="/login" className="font-semibold text-brand-700 hover:text-brand-800">
-              Sign in
-            </Link>
-          </p>
-        </div>
+        <p className="mt-6 text-center text-sm text-stone-500">
+          Already have an account?{' '}
+          <Link to="/login" className="font-semibold text-brand-700 hover:text-brand-800">
+            Sign in
+          </Link>
+        </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
