@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MagnifyingGlass, ShieldCheck, Handshake, ChartLineUp } from '@phosphor-icons/react';
@@ -6,6 +6,15 @@ import AppLayout from './Layout/AppLayout';
 import PropertyCard from './ui/PropertyCard';
 import { properties } from '../data/sampleProperties';
 import heroImage from '../assets/hero.jpg';
+
+const HERO_SLIDES = [
+  heroImage,
+  'https://images.unsplash.com/photo-1494145904049-0dca59b4bbad?w=1600&h=1000&fit=crop',
+  'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1600&h=1000&fit=crop',
+  'https://images.unsplash.com/photo-1493857671505-72967e2e2760?w=1600&h=1000&fit=crop',
+  'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600&h=1000&fit=crop',
+  'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=1600&h=1000&fit=crop',
+];
 
 const STEPS = [
   {
@@ -33,46 +42,69 @@ const STATS = [
 
 export default function Landing() {
   const featured = properties.slice(0, 3);
+  const [slide, setSlide] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setSlide((i) => (i + 1) % HERO_SLIDES.length), 5000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <AppLayout footer>
-      {/* Hero: asymmetric split */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-20 grid md:grid-cols-2 gap-12 items-center">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-stone-900 leading-tight">
-            Find your next home, without the agent markup.
-          </h1>
-          <p className="mt-5 text-lg text-stone-600 max-w-md">
-            Browse verified listings from owners across India and book a viewing in minutes.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              to="/properties"
-              className="rounded-lg bg-brand-700 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-800 transition-colors"
-            >
-              Browse properties
-            </Link>
-            <Link
-              to="/register"
-              className="rounded-lg border border-stone-300 bg-white px-6 py-3 text-sm font-semibold text-stone-800 hover:bg-stone-50 transition-colors"
-            >
-              List your property
-            </Link>
-          </div>
-        </motion.div>
+      {/* Hero: full-bleed background slideshow, text overlaid */}
+      <section className="relative min-h-[560px] md:min-h-[640px] overflow-hidden">
+        {HERO_SLIDES.map((src, i) => (
+          <img
+            key={src}
+            src={src}
+            alt=""
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-[1500ms] ease-in-out ${
+              i === slide ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        ))}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/10" />
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="rounded-2xl overflow-hidden shadow-lifted"
-        >
-          <img src={heroImage} alt="Modern villa exterior" className="w-full h-full object-cover aspect-[4/3]" />
-        </motion.div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-28 md:py-36">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            className="max-w-xl"
+          >
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
+              Find your next home, without the agent markup.
+            </h1>
+            <p className="mt-5 text-lg text-stone-200 max-w-md">
+              Browse verified listings from owners across India and book a viewing in minutes.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                to="/properties"
+                className="rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"
+              >
+                Browse properties
+              </Link>
+              <Link
+                to="/register"
+                className="rounded-lg border border-white/40 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm hover:bg-white/20 transition-colors"
+              >
+                List your property
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+          {HERO_SLIDES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setSlide(i)}
+              aria-label={`Show slide ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all ${i === slide ? 'w-6 bg-white' : 'w-1.5 bg-white/50'}`}
+            />
+          ))}
+        </div>
       </section>
 
       {/* Stats band */}
