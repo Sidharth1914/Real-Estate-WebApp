@@ -1,85 +1,81 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Buildings, PlusCircle, CalendarBlank, UserCircle, Info, ArrowRight } from '@phosphor-icons/react';
+import AppLayout from './Layout/AppLayout';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user')) || {};
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
-  };
+  const cards = [
+    {
+      icon: Buildings,
+      title: 'Browse properties',
+      body: 'View every available listing on the platform.',
+      onClick: () => navigate('/properties'),
+    },
+    ...(user.role === 'SELLER'
+      ? [{
+          icon: PlusCircle,
+          title: 'Add a property',
+          body: 'List a new property for sale or rent.',
+          onClick: () => navigate('/add-property'),
+        }]
+      : []),
+    ...(user.role === 'BUYER'
+      ? [{
+          icon: CalendarBlank,
+          title: 'My bookings',
+          body: 'View your scheduled property viewings.',
+          onClick: () => navigate('/bookings'),
+        }]
+      : []),
+    {
+      icon: UserCircle,
+      title: 'Profile',
+      body: 'Manage your account and personal details.',
+      onClick: () => navigate('/profile'),
+    },
+  ];
 
   return (
-    <div className="page-container">
-      {/* Navigation */}
-      <nav style={{ marginBottom: '32px', marginLeft: '-20px', marginRight: '-20px', marginTop: '-32px', paddingLeft: '20px', paddingRight: '20px' }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', paddingBottom: '16px' }}>
-          <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '800', color: 'white' }}>🏠 Properties Hub</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', color: 'white' }}>
-            <span style={{ fontSize: '14px' }}>Welcome, <strong>{user.username}</strong> <span style={{ opacity: 0.8 }}>({user.role})</span></span>
+    <AppLayout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+        <h1 className="text-2xl md:text-3xl font-bold text-stone-900">
+          Welcome back, {user.username}
+        </h1>
+        <p className="mt-1 text-stone-500">Choose an action to get started.</p>
+
+        <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {cards.map((card) => (
             <button
-              onClick={handleLogout}
-              className="btn btn-danger"
+              key={card.title}
+              onClick={card.onClick}
+              className="text-left rounded-2xl border border-stone-200 bg-white p-6 shadow-soft hover:shadow-lifted hover:-translate-y-0.5 transition-all duration-200"
             >
-              Logout
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-700">
+                <card.icon size={20} weight="bold" />
+              </span>
+              <h3 className="mt-4 font-semibold text-stone-900 flex items-center gap-1.5">
+                {card.title} <ArrowRight size={14} className="opacity-50" />
+              </h3>
+              <p className="mt-1.5 text-sm text-stone-500">{card.body}</p>
             </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* Dashboard Content */}
-      <div className="container">
-        <div className="page-header">
-          <h1>Dashboard</h1>
-          <p style={{ marginBottom: 0, fontSize: '16px' }}>Welcome back! Choose an action to get started.</p>
+          ))}
         </div>
 
-        <div className="grid grid-4 mb-8">
-          {/* Quick Links */}
-          <div className="card" style={{ cursor: 'pointer' }}
-               onClick={() => navigate('/properties')}>
-            <h3 style={{ fontSize: '24px', marginBottom: '12px' }}>🏘️ Browse Properties</h3>
-            <p>View all available properties in our database</p>
-          </div>
-
-          {user.role === 'SELLER' && (
-            <div className="card" style={{ cursor: 'pointer' }}
-                 onClick={() => navigate('/add-property')}>
-              <h3 style={{ fontSize: '24px', marginBottom: '12px' }}>➕ Add Property</h3>
-              <p>List a new property for sale or rent</p>
-            </div>
-          )}
-
-          {user.role === 'BUYER' && (
-            <div className="card" style={{ cursor: 'pointer' }}
-                 onClick={() => navigate('/bookings')}>
-              <h3 style={{ fontSize: '24px', marginBottom: '12px' }}>📅 My Bookings</h3>
-              <p>View your scheduled property viewings</p>
-            </div>
-          )}
-
-          <div className="card" style={{ cursor: 'pointer' }}
-               onClick={() => navigate('/profile')}>
-            <h3 style={{ fontSize: '24px', marginBottom: '12px' }}>👤 Profile</h3>
-            <p>Manage your account and personal details</p>
-          </div>
-        </div>
-
-        {/* Info Box */}
-        <div className="alert alert-info">
-          <span style={{ fontSize: '20px' }}>📌</span>
+        <div className="mt-8 flex items-start gap-3 rounded-2xl border border-brand-200 bg-brand-50 p-5">
+          <Info size={20} weight="fill" className="text-brand-700 mt-0.5 shrink-0" />
           <div>
-            <h3 style={{ margin: 0, marginBottom: '4px', fontSize: '18px' }}>Getting Started</h3>
-            <p style={{ margin: 0, fontSize: '14px' }}>
+            <h3 className="font-semibold text-stone-900 text-sm">Getting started</h3>
+            <p className="mt-1 text-sm text-stone-600">
               {user.role === 'SELLER'
-                ? 'Start listing your properties to connect with buyers. Click "Add Property" to get started.'
-                : 'Browse properties, search by location or price, and book properties for viewing.'}
+                ? 'Start listing your properties to connect with buyers. Click "Add a property" to get started.'
+                : 'Browse properties, search by location or price, and book a viewing when you find one you like.'}
             </p>
           </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }

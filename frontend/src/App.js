@@ -7,7 +7,9 @@ import PropertyList from './components/PropertyList';
 import PropertyDetail from './components/PropertyDetail';
 import AddProperty from './components/AddProperty';
 import Profile from './components/Profile';
-import './App.css';
+import Bookings from './components/Bookings';
+import Landing from './components/Landing';
+import { ToastProvider } from './components/ui/Toast';
 
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -16,38 +18,37 @@ function ProtectedRoute({ children }) {
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/properties" element={
-          <ProtectedRoute>
-            <PropertyList />
-          </ProtectedRoute>
-        } />
-        <Route path="/add-property" element={
-          <ProtectedRoute>
-            <AddProperty />
-          </ProtectedRoute>
-        } />
-        <Route path="/property/:id" element={
-          <ProtectedRoute>
-            <PropertyDetail />
-          </ProtectedRoute>
-        } />
-        <Route path="/profile" element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        } />
-        <Route path="/" element={<Navigate to="/dashboard" />} />
-      </Routes>
-    </Router>
+    <ToastProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/properties" element={<PropertyList />} />
+          <Route path="/property/:id" element={<PropertyDetail />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/add-property" element={
+            <ProtectedRoute>
+              <AddProperty />
+            </ProtectedRoute>
+          } />
+          <Route path="/bookings" element={
+            <ProtectedRoute>
+              <Bookings />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </Router>
+    </ToastProvider>
   );
 }
 

@@ -64,7 +64,16 @@ router.put('/:id', authMiddleware, roleMiddleware('SELLER', 'ADMIN'), async (req
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    Object.assign(property, req.body);
+    // Whitelist: `seller` must never be settable here — Object.assign(property, req.body)
+    // would let an owner reassign a listing to an arbitrary user id. Only copy keys the
+    // client actually sent, so a partial update doesn't blank out the rest with undefined.
+    const EDITABLE_FIELDS = ['title', 'description', 'price', 'location', 'bedrooms',
+      'bathrooms', 'squareFeet', 'totalRooms', 'hasGarden', 'gardenSize', 'hasBackyard',
+      'backyardSize', 'hasParking', 'parkingSpaces', 'floorsInBuilding', 'propertyType',
+      'images', 'thumbnailImage', 'amenities', 'features', 'available'];
+    for (const field of EDITABLE_FIELDS) {
+      if (field in req.body) property[field] = req.body[field];
+    }
     property.updatedAt = Date.now();
     await property.save();
     res.json({ message: 'Property updated', property });
@@ -96,13 +105,21 @@ router.get('/search/query', async (req, res) => {
     const { location, minPrice, maxPrice, propertyType } = req.query;
     let query = {};
 
-    if (location) query.location = { $regex: location, $options: 'i' };
-    if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice) query.price.$gte = minPrice;
-      if (maxPrice) query.price.$lte = maxPrice;
+    // Query-string values must be checked as strings before use — `qs` turns
+    // e.g. `?minPrice[$ne]=0` into an object, which would inject a Mongo
+    // operator straight into the query if passed through unchecked.
+    if (typeof location === 'string' && location) {
+      query.location = { $regex: location, $options: 'i' };
     }
-    if (propertyType) query.propertyType = propertyType;
+    if (typeof minPrice === 'string' && minPrice && !isNaN(Number(minPrice))) {
+      query.price = { ...query.price, $gte: Number(minPrice) };
+    }
+    if (typeof maxPrice === 'string' && maxPrice && !isNaN(Number(maxPrice))) {
+      query.price = { ...query.price, $lte: Number(maxPrice) };
+    }
+    if (typeof propertyType === 'string' && ['HOUSE', 'APARTMENT', 'COMMERCIAL', 'LAND'].includes(propertyType)) {
+      query.propertyType = propertyType;
+    }
 
     const properties = await Property.find(query).populate('seller', 'username email phone');
     res.json(properties);

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Booking = require('../models/Booking');
+const Property = require('../models/Property');
 const { authMiddleware, roleMiddleware } = require('../middleware/auth');
 
 // Get all bookings
@@ -58,12 +59,23 @@ router.put('/:id', authMiddleware, async (req, res) => {
 
     if (!booking) return res.status(404).json({ error: 'Booking not found' });
 
-    // Only buyer or admin can update
-    if (booking.buyer.toString() !== req.user.id && req.user.role !== 'ADMIN') {
+    const isBuyer = booking.buyer.toString() === req.user.id;
+    const isAdmin = req.user.role === 'ADMIN';
+    const isSeller = req.user.role === 'SELLER' &&
+      await Property.exists({ _id: booking.property, seller: req.user.id });
+
+    if (!isBuyer && !isAdmin && !isSeller) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    if (status) booking.status = status;
+    // Buyer may only cancel their own booking; confirming/completing it
+    // is the seller's (or admin's) call.
+    if (status) {
+      if (isBuyer && !isAdmin && !isSeller && status !== 'CANCELLED') {
+        return res.status(403).json({ error: 'Only the seller or admin can set that status' });
+      }
+      booking.status = status;
+    }
     await booking.save();
 
     res.json({ message: 'Booking updated', booking });

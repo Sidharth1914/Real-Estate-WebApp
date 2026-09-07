@@ -9,8 +9,12 @@ router.post('/register', async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
 
-    if (!username || !email || !password) {
+    if (typeof username !== 'string' || typeof email !== 'string' || typeof password !== 'string'
+      || !username || !email || !password) {
       return res.status(400).json({ error: 'All fields are required' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Invalid email address' });
     }
 
     const userExists = await User.findOne({ $or: [{ email }, { username }] });
@@ -18,12 +22,13 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'User already exists' });
     }
 
-    const user = new User({ username, email, password, role: role || 'BUYER' });
+    const safeRole = ['BUYER', 'SELLER'].includes(role) ? role : 'BUYER';
+    const user = new User({ username, email, password, role: safeRole });
     await user.save();
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
-      process.env.JWT_SECRET || 'your_jwt_secret_key_change_this_in_production',
+      process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
@@ -42,7 +47,7 @@ router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    if (!username || !password) {
+    if (typeof username !== 'string' || typeof password !== 'string' || !username || !password) {
       return res.status(400).json({ error: 'Username and password required' });
     }
 
@@ -58,7 +63,7 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
-      process.env.JWT_SECRET || 'your_jwt_secret_key_change_this_in_production',
+      process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
@@ -89,7 +94,13 @@ router.put('/:id', authMiddleware, async (req, res) => {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true }).select('-password');
+    // Whitelist: role and password must never be settable through this route —
+    // role changes bypass authorization, and password bypasses the pre('save')
+    // hash hook since findByIdAndUpdate doesn't run it, storing it in plaintext.
+    const { phone, address, profilePhoto, firstName, lastName, city, state, zipCode, bio } = req.body;
+    const updates = { phone, address, profilePhoto, firstName, lastName, city, state, zipCode, bio };
+
+    const updatedUser = await User.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true }).select('-password');
     res.json({ message: 'User updated', user: updatedUser });
   } catch (err) {
     res.status(500).json({ error: err.message });

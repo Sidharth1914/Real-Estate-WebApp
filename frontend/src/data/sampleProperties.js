@@ -25,8 +25,8 @@ export const sampleProperties = [
     },
     images: [
       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1570129477492-45a003537e1f?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1512917774080-9264f475eabf?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop',
       'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop'
     ],
     thumbnailImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop',
@@ -103,8 +103,8 @@ export const sampleProperties = [
     },
     images: [
       'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1570129477492-45a003537e1f?w=800&h=600&fit=crop',
-      'https://images.unsplash.com/photo-1512917774080-9264f475eabf?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop',
       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop'
     ],
     thumbnailImage: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop',
@@ -163,7 +163,7 @@ export const sampleProperties = [
     floorsInBuilding: 2,
     propertyType: 'HOUSE',
     seller: { name: 'Vikram Patel', phone: '+91-9876543214', email: 'vikram.patel@properties.com' },
-    images: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop', 'https://images.unsplash.com/photo-1570129477492-45a003537e1f?w=800&h=600&fit=crop'],
+    images: ['https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop', 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800&h=600&fit=crop'],
     thumbnailImage: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop',
     amenities: ['Swimming Pool', 'Garden', 'Security', 'Servant Quarters'],
     features: ['Landscaped Garden', 'Water Feature', 'Solar System'],
@@ -216,8 +216,8 @@ export const sampleProperties = [
     floorsInBuilding: 6,
     propertyType: 'APARTMENT',
     seller: { name: 'Sunita Reddy', phone: '+91-9876543217', email: 'sunita.reddy@properties.com' },
-    images: ['https://images.unsplash.com/photo-1552748814-65e3eef0a9bb?w=800&h=600&fit=crop'],
-    thumbnailImage: 'https://images.unsplash.com/photo-1552748814-65e3eef0a9bb?w=800&h=600&fit=crop',
+    images: ['https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800&h=600&fit=crop'],
+    thumbnailImage: 'https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800&h=600&fit=crop',
     amenities: ['Swimming Pool', 'Beach Access', 'Security'],
     features: ['Beach View', 'Balcony', 'Modern Kitchen'],
     nearbyLocations: [
@@ -226,3 +226,8 @@ export const sampleProperties = [
     ]
   }
 ];
+
+// Stable id = original array position, kept on the object so filtered/sorted
+// views can still route back to the right listing (index-into-filtered-array
+// silently pointed at the wrong property once a search narrowed the list).
+export const properties = sampleProperties.map((p, id) => ({ ...p, id }));

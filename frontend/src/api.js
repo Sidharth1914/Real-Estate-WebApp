@@ -22,6 +22,7 @@ export const authAPI = {
   register: (data) => api.post('/users/register', data),
   login: (data) => api.post('/users/login', data),
   getMe: () => api.get('/users/me'),
+  update: (id, data) => api.put(`/users/${id}`, data),
 };
 
 export const propertyAPI = {

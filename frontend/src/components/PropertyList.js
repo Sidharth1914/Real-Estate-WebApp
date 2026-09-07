@@ -1,231 +1,100 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { MagnifyingGlass, X } from '@phosphor-icons/react';
+import AppLayout from './Layout/AppLayout';
+import PropertyCard from './ui/PropertyCard';
+import { properties as allProperties } from '../data/sampleProperties';
 
-import { sampleProperties } from '../data/sampleProperties';
+const EMPTY_SEARCH = { location: '', minPrice: '', maxPrice: '' };
 
 export default function PropertyList() {
-  const navigate = useNavigate();
-  const [properties, setProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchParams, setSearchParams] = useState({
-    location: '',
-    minPrice: '',
-    maxPrice: '',
-  });
-
-  useEffect(() => {
-    fetchProperties();
-  }, []);
-
-  const fetchProperties = async (params = {}) => {
-    try {
-      setLoading(true);
-      // Use sample data if no properties in DB
-      setProperties(sampleProperties);
-    } catch (err) {
-      console.error('Error fetching properties:', err);
-      setProperties(sampleProperties);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [properties, setProperties] = useState(allProperties);
+  const [search, setSearch] = useState(EMPTY_SEARCH);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    let filtered = sampleProperties;
-    
-    if (searchParams.location) {
-      filtered = filtered.filter(p => 
-        p.location.toLowerCase().includes(searchParams.location.toLowerCase())
-      );
+    let filtered = allProperties;
+
+    if (search.location) {
+      filtered = filtered.filter((p) => p.location.toLowerCase().includes(search.location.toLowerCase()));
     }
-    if (searchParams.minPrice) {
-      filtered = filtered.filter(p => p.price >= parseInt(searchParams.minPrice));
+    if (search.minPrice) {
+      filtered = filtered.filter((p) => p.price >= parseInt(search.minPrice, 10));
     }
-    if (searchParams.maxPrice) {
-      filtered = filtered.filter(p => p.price <= parseInt(searchParams.maxPrice));
+    if (search.maxPrice) {
+      filtered = filtered.filter((p) => p.price <= parseInt(search.maxPrice, 10));
     }
-    
     setProperties(filtered);
   };
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-    }).format(price);
+  const clearSearch = () => {
+    setSearch(EMPTY_SEARCH);
+    setProperties(allProperties);
   };
 
   return (
-    <div className="page-container" style={{ paddingTop: 0 }}>
-      {/* Header */}
-      <div style={{
-        background: 'linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%)',
-        padding: '48px 20px',
-        marginLeft: '-20px',
-        marginRight: '-20px',
-        marginTop: '-32px',
-        color: 'white',
-        marginBottom: '32px'
-      }}>
-        <div className="container">
-          <h1 style={{ margin: 0, marginBottom: '8px', color: 'white', fontSize: '42px' }}>Browse Properties</h1>
-          <p style={{ margin: 0, opacity: 0.9, fontSize: '16px' }}>Find your perfect home from {properties.length}+ premium listings</p>
-        </div>
-      </div>
+    <AppLayout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+        <h1 className="text-2xl md:text-3xl font-bold text-stone-900">Browse properties</h1>
+        <p className="mt-1 text-stone-500">Find your perfect home from {allProperties.length} listings.</p>
 
-      <div className="container">
-        {/* Search Bar */}
-        <div className="form-section" style={{ marginBottom: '32px' }}>
-          <h3 style={{ marginTop: 0, marginBottom: '24px' }}>Search Properties</h3>
-          <form onSubmit={handleSearch}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '16px' }}>
-              <input
-                type="text"
-                placeholder="Search by location..."
-                value={searchParams.location}
-                onChange={(e) => setSearchParams({ ...searchParams, location: e.target.value })}
-                className="form-input"
-              />
-              <input
-                type="number"
-                placeholder="Min Price (₹)"
-                value={searchParams.minPrice}
-                onChange={(e) => setSearchParams({ ...searchParams, minPrice: e.target.value })}
-                className="form-input"
-              />
-              <input
-                type="number"
-                placeholder="Max Price (₹)"
-                value={searchParams.maxPrice}
-                onChange={(e) => setSearchParams({ ...searchParams, maxPrice: e.target.value })}
-                className="form-input"
-              />
-            </div>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button 
-                type="submit" 
-                className="btn btn-primary"
-              >
-                🔍 Search
-              </button>
+        <form onSubmit={handleSearch} className="mt-6 rounded-2xl border border-stone-200 bg-white p-4 grid sm:grid-cols-[2fr_1fr_1fr_auto] gap-3">
+          <input
+            type="text"
+            placeholder="Search by location"
+            value={search.location}
+            onChange={(e) => setSearch({ ...search, location: e.target.value })}
+            className="rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+          />
+          <input
+            type="number"
+            placeholder="Min price (₹)"
+            value={search.minPrice}
+            onChange={(e) => setSearch({ ...search, minPrice: e.target.value })}
+            className="rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+          />
+          <input
+            type="number"
+            placeholder="Max price (₹)"
+            value={search.maxPrice}
+            onChange={(e) => setSearch({ ...search, maxPrice: e.target.value })}
+            className="rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+          />
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              className="flex items-center gap-1.5 rounded-lg bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 transition-colors"
+            >
+              <MagnifyingGlass size={16} /> Search
+            </button>
+            {(search.location || search.minPrice || search.maxPrice) && (
               <button
                 type="button"
-                onClick={() => {
-                  setSearchParams({ location: '', minPrice: '', maxPrice: '' });
-                  setProperties(sampleProperties);
-                }}
-                className="btn btn-secondary"
+                onClick={clearSearch}
+                className="flex items-center justify-center rounded-lg border border-stone-300 px-3 text-stone-500 hover:bg-stone-50 transition-colors"
+                aria-label="Clear filters"
               >
-                Clear Filters
+                <X size={16} />
               </button>
-            </div>
-          </form>
-        </div>
+            )}
+          </div>
+        </form>
 
-        {/* Results */}
-        {loading ? (
-          <div style={{ textAlign: 'center', paddingTop: '60px', paddingBottom: '60px' }}>
-            <div className="loading" style={{ margin: '0 auto', marginBottom: '16px' }}></div>
-            <p style={{ color: 'var(--text-secondary)' }}>Loading properties...</p>
+        <p className="mt-6 text-sm font-medium text-stone-500">
+          {properties.length} propert{properties.length === 1 ? 'y' : 'ies'} found
+        </p>
+
+        {properties.length > 0 ? (
+          <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {properties.map((property) => (
+              <PropertyCard key={property.id} property={property} />
+            ))}
           </div>
         ) : (
-          <>
-            <p style={{ marginBottom: '24px', color: 'var(--text-secondary)', fontSize: '16px', fontWeight: '600' }}>
-              Found <strong>{properties.length}</strong> properties
-            </p>
-            <div className="grid grid-3">
-              {properties.map((property, idx) => (
-                <div 
-                  key={idx} 
-                  onClick={() => navigate(`/property/${idx}`)}
-                  className="property-card"
-                >
-                  {/* Image */}
-                  <div style={{ position: 'relative', overflow: 'hidden' }}>
-                    <img 
-                      src={property.thumbnailImage || property.images?.[0] || 'https://via.placeholder.com/400x300'}
-                      alt={property.title}
-                      className="property-image"
-                    />
-                    <div style={{
-                      position: 'absolute',
-                      top: '12px',
-                      right: '12px',
-                      background: 'var(--primary-color)',
-                      color: 'white',
-                      padding: '6px 12px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: '700',
-                      textTransform: 'uppercase'
-                    }}>
-                      {property.propertyType}
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="property-info">
-                    <h3 className="property-title">{property.title}</h3>
-                    <p className="property-location">📍 {property.location}</p>
-                    
-                    <div className="property-price">
-                      {formatPrice(property.price)}
-                    </div>
-
-                    {/* Quick Stats */}
-                    <div className="property-stats">
-                      {property.bedrooms !== undefined && (
-                        <div className="property-stat">
-                          <div className="property-stat-value">{property.bedrooms}</div>
-                          <div className="property-stat-label">Beds</div>
-                        </div>
-                      )}
-                      {property.bathrooms !== undefined && (
-                        <div className="property-stat">
-                          <div className="property-stat-value">{property.bathrooms}</div>
-                          <div className="property-stat-label">Baths</div>
-                        </div>
-                      )}
-                      {property.squareFeet && (
-                        <div className="property-stat">
-                          <div className="property-stat-value">{(property.squareFeet / 1000).toFixed(1)}K</div>
-                          <div className="property-stat-label">Sq Ft</div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Additional Info */}
-                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--border-color)' }}>
-                      {property.hasGarden && <p style={{ margin: '4px 0' }}>🌳 Garden</p>}
-                      {property.hasBackyard && <p style={{ margin: '4px 0' }}>🏞️ Backyard</p>}
-                      {property.hasParking && <p style={{ margin: '4px 0' }}>🚗 Parking</p>}
-                    </div>
-
-                    <button 
-                      className="btn btn-primary"
-                      style={{ width: '100%', marginTop: '16px' }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/property/${idx}`);
-                      }}
-                    >
-                      View Details →
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {properties.length === 0 && (
-              <div style={{ textAlign: 'center', paddingTop: '60px', paddingBottom: '60px' }}>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '16px' }}>No properties found. Try adjusting your search criteria.</p>
-              </div>
-            )}
-          </>
+          <div className="mt-16 text-center">
+            <p className="text-stone-500">No properties match those filters. Try widening your search.</p>
+          </div>
         )}
       </div>
-    </div>
+    </AppLayout>
   );
 }
