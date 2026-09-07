@@ -1,43 +1,74 @@
-import React, { useState } from 'react';
-import { MagnifyingGlass, X } from '@phosphor-icons/react';
+import React, { useState, useEffect } from 'react';
+import { MagnifyingGlass, X, CircleNotch } from '@phosphor-icons/react';
 import AppLayout from './Layout/AppLayout';
 import PropertyCard from './ui/PropertyCard';
-import { properties as allProperties } from '../data/sampleProperties';
+import { propertyAPI } from '../api';
+import { useToast } from './ui/Toast';
 
-const EMPTY_SEARCH = { location: '', minPrice: '', maxPrice: '' };
+const EMPTY_SEARCH = { location: '', minPrice: '', maxPrice: '', propertyType: '' };
+const TYPE_OPTIONS = [
+  { value: '', label: 'All types' },
+  { value: 'HOUSE', label: 'House' },
+  { value: 'APARTMENT', label: 'Apartment' },
+  { value: 'COMMERCIAL', label: 'Commercial' },
+  { value: 'LAND', label: 'Land' },
+];
 
 export default function PropertyList() {
-  const [properties, setProperties] = useState(allProperties);
+  const [properties, setProperties] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState(EMPTY_SEARCH);
+  const toast = useToast();
 
-  const handleSearch = (e) => {
+  useEffect(() => {
+    propertyAPI.getAll()
+      .then(({ data }) => {
+        setProperties(data);
+        setTotal(data.length);
+      })
+      .catch(() => toast('Could not load properties.', 'error'))
+      .finally(() => setLoading(false));
+  }, [toast]);
+
+  const handleSearch = async (e) => {
     e.preventDefault();
-    let filtered = allProperties;
-
-    if (search.location) {
-      filtered = filtered.filter((p) => p.location.toLowerCase().includes(search.location.toLowerCase()));
+    setLoading(true);
+    try {
+      const params = {};
+      if (search.location) params.location = search.location;
+      if (search.minPrice) params.minPrice = search.minPrice;
+      if (search.maxPrice) params.maxPrice = search.maxPrice;
+      if (search.propertyType) params.propertyType = search.propertyType;
+      const { data } = await propertyAPI.search(params);
+      setProperties(data);
+    } catch (err) {
+      toast('Search failed.', 'error');
+    } finally {
+      setLoading(false);
     }
-    if (search.minPrice) {
-      filtered = filtered.filter((p) => p.price >= parseInt(search.minPrice, 10));
-    }
-    if (search.maxPrice) {
-      filtered = filtered.filter((p) => p.price <= parseInt(search.maxPrice, 10));
-    }
-    setProperties(filtered);
   };
 
-  const clearSearch = () => {
+  const clearSearch = async () => {
     setSearch(EMPTY_SEARCH);
-    setProperties(allProperties);
+    setLoading(true);
+    try {
+      const { data } = await propertyAPI.getAll();
+      setProperties(data);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const hasFilters = search.location || search.minPrice || search.maxPrice || search.propertyType;
 
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
         <h1 className="text-2xl md:text-3xl font-bold text-stone-900">Browse properties</h1>
-        <p className="mt-1 text-stone-500">Find your perfect home from {allProperties.length} listings.</p>
+        <p className="mt-1 text-stone-500">Find your perfect home from {total} listings.</p>
 
-        <form onSubmit={handleSearch} className="mt-6 rounded-2xl border border-stone-200 bg-white p-4 grid sm:grid-cols-[2fr_1fr_1fr_auto] gap-3">
+        <form onSubmit={handleSearch} className="mt-6 rounded-2xl border border-stone-200 bg-white p-4 grid sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_auto] gap-3">
           <input
             type="text"
             placeholder="Search by location"
@@ -59,6 +90,13 @@ export default function PropertyList() {
             onChange={(e) => setSearch({ ...search, maxPrice: e.target.value })}
             className="rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
           />
+          <select
+            value={search.propertyType}
+            onChange={(e) => setSearch({ ...search, propertyType: e.target.value })}
+            className="rounded-lg border border-stone-300 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+          >
+            {TYPE_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+          </select>
           <div className="flex gap-2">
             <button
               type="submit"
@@ -66,7 +104,7 @@ export default function PropertyList() {
             >
               <MagnifyingGlass size={16} /> Search
             </button>
-            {(search.location || search.minPrice || search.maxPrice) && (
+            {hasFilters && (
               <button
                 type="button"
                 onClick={clearSearch}
@@ -80,13 +118,17 @@ export default function PropertyList() {
         </form>
 
         <p className="mt-6 text-sm font-medium text-stone-500">
-          {properties.length} propert{properties.length === 1 ? 'y' : 'ies'} found
+          {loading ? 'Searching…' : `${properties.length} propert${properties.length === 1 ? 'y' : 'ies'} found`}
         </p>
 
-        {properties.length > 0 ? (
+        {loading ? (
+          <div className="mt-16 text-center text-stone-400">
+            <CircleNotch size={24} className="animate-spin mx-auto" />
+          </div>
+        ) : properties.length > 0 ? (
           <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {properties.map((property) => (
-              <PropertyCard key={property.id} property={property} />
+              <PropertyCard key={property._id} property={property} />
             ))}
           </div>
         ) : (

@@ -2,13 +2,13 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bed, Bathtub, Ruler, Tree, Car } from '@phosphor-icons/react';
 import { formatPrice, formatSqft } from '../../utils/format';
-import { onImageError } from '../../utils/placeholder';
+import { onImageError, imageFallback } from '../../utils/placeholder';
 
 const TYPE_LABEL = { HOUSE: 'House', APARTMENT: 'Apartment', COMMERCIAL: 'Commercial', LAND: 'Land' };
 
 export default function PropertyCard({ property }) {
   const navigate = useNavigate();
-  const go = () => navigate(`/property/${property.id}`);
+  const go = () => navigate(`/property/${property._id}`);
 
   return (
     <div
@@ -16,7 +16,7 @@ export default function PropertyCard({ property }) {
       className="group relative h-96 cursor-pointer overflow-hidden rounded-2xl bg-stone-900 shadow-soft hover:shadow-lifted transition-shadow duration-300"
     >
       <img
-        src={property.thumbnailImage || property.images?.[0]}
+        src={property.thumbnailImage || property.images?.[0] || imageFallback}
         alt={property.title}
         className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         loading="lazy"

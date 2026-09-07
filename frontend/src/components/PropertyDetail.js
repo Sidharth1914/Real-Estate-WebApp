@@ -6,8 +6,9 @@ import {
   CalendarBlank, Phone, X, ArrowSquareOut,
 } from '@phosphor-icons/react';
 import AppLayout from './Layout/AppLayout';
-import { properties } from '../data/sampleProperties';
+import { propertyAPI, bookingAPI } from '../api';
 import { formatPrice } from '../utils/format';
+import { onImageError, imageFallback } from '../utils/placeholder';
 import { amenityIcon, locationIcon, stripEmoji } from '../utils/icons';
 import { useToast } from './ui/Toast';
 
@@ -41,15 +42,31 @@ export default function PropertyDetail() {
   const navigate = useNavigate();
   const toast = useToast();
   const [property, setProperty] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
   const [showViewingModal, setShowViewingModal] = useState(false);
   const [showContactModal, setShowContactModal] = useState(false);
   const [viewingData, setViewingData] = useState({ date: '', time: '' });
+  const [booking, setBooking] = useState(false);
 
   useEffect(() => {
-    setProperty(properties.find((p) => p.id === parseInt(id, 10)) || null);
+    setLoading(true);
+    propertyAPI.getById(id)
+      .then(({ data }) => setProperty(data))
+      .catch(() => setProperty(null))
+      .finally(() => setLoading(false));
     setSelectedImage(0);
   }, [id]);
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-24 text-center text-stone-400">
+          Loading property…
+        </div>
+      </AppLayout>
+    );
+  }
 
   if (!property) {
     return (
@@ -64,14 +81,23 @@ export default function PropertyDetail() {
     );
   }
 
-  const handleScheduleViewing = () => {
+  const handleScheduleViewing = async () => {
     if (!viewingData.date || !viewingData.time) {
       toast('Please select both a date and a time.', 'error');
       return;
     }
-    toast(`Viewing scheduled for ${viewingData.date} at ${viewingData.time}.`, 'success');
-    setShowViewingModal(false);
-    setViewingData({ date: '', time: '' });
+    setBooking(true);
+    try {
+      const visitDate = new Date(`${viewingData.date} ${viewingData.time}`);
+      await bookingAPI.create({ propertyId: property._id, visitDate: visitDate.toISOString() });
+      toast(`Viewing scheduled for ${viewingData.date} at ${viewingData.time}.`, 'success');
+      setShowViewingModal(false);
+      setViewingData({ date: '', time: '' });
+    } catch (err) {
+      toast(err.response?.data?.error || 'Could not schedule viewing.', 'error');
+    } finally {
+      setBooking(false);
+    }
   };
 
   const stats = [
@@ -97,9 +123,10 @@ export default function PropertyDetail() {
         <div className="mt-6">
           <div className="rounded-2xl overflow-hidden h-[420px] bg-stone-100">
             <img
-              src={property.images?.[selectedImage] || property.thumbnailImage}
+              src={property.images?.[selectedImage] || property.thumbnailImage || imageFallback}
               alt={property.title}
               className="w-full h-full object-cover"
+              onError={onImageError}
             />
           </div>
           {property.images && property.images.length > 1 && (
@@ -189,7 +216,7 @@ export default function PropertyDetail() {
             <div className="space-y-3 text-sm">
               <div>
                 <p className="text-stone-500">Name</p>
-                <p className="font-medium text-stone-900">{property.seller?.name || 'Property owner'}</p>
+                <p className="font-medium text-stone-900">{property.seller?.username || 'Property owner'}</p>
               </div>
               <div>
                 <p className="text-stone-500">Phone</p>
@@ -311,8 +338,12 @@ export default function PropertyDetail() {
               </div>
             </div>
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <button onClick={handleScheduleViewing} className="rounded-lg bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-800">
-                Confirm
+              <button
+                onClick={handleScheduleViewing}
+                disabled={booking}
+                className="rounded-lg bg-brand-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-800 disabled:opacity-60"
+              >
+                {booking ? 'Confirming…' : 'Confirm'}
               </button>
               <button onClick={() => setShowViewingModal(false)} className="rounded-lg border border-stone-300 px-4 py-2.5 text-sm font-semibold text-stone-700 hover:bg-stone-50">
                 Cancel
@@ -332,7 +363,7 @@ export default function PropertyDetail() {
             <div className="rounded-lg bg-brand-50 p-5 space-y-3">
               <div>
                 <p className="text-xs font-semibold uppercase text-stone-500">Name</p>
-                <p className="font-semibold text-stone-900">{property.seller?.name || 'Property owner'}</p>
+                <p className="font-semibold text-stone-900">{property.seller?.username || 'Property owner'}</p>
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase text-stone-500">Phone</p>

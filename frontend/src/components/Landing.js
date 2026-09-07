@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { MagnifyingGlass, ShieldCheck, Handshake, ChartLineUp } from '@phosphor-icons/react';
 import AppLayout from './Layout/AppLayout';
 import PropertyCard from './ui/PropertyCard';
-import { properties } from '../data/sampleProperties';
+import { propertyAPI } from '../api';
 import { HERO_SLIDES } from '../data/heroImages';
 
 const STEPS = [
@@ -25,20 +25,26 @@ const STEPS = [
   },
 ];
 
-const STATS = [
-  { value: `${properties.length}`, label: 'Active listings' },
-  { value: '6', label: 'Cities covered' },
-  { value: '0%', label: 'Agent commission' },
-];
-
 export default function Landing() {
-  const featured = properties.slice(0, 3);
+  const [properties, setProperties] = useState([]);
   const [slide, setSlide] = useState(0);
+
+  useEffect(() => {
+    propertyAPI.getAll().then(({ data }) => setProperties(data)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const id = setInterval(() => setSlide((i) => (i + 1) % HERO_SLIDES.length), 5000);
     return () => clearInterval(id);
   }, []);
+
+  const featured = properties.slice(0, 3);
+  const cities = new Set(properties.map((p) => p.location.split(',').pop().trim())).size;
+  const stats = [
+    { value: `${properties.length}`, label: 'Active listings' },
+    { value: `${cities}`, label: 'Cities covered' },
+    { value: '0%', label: 'Agent commission' },
+  ];
 
   return (
     <AppLayout footer>
@@ -101,7 +107,7 @@ export default function Landing() {
       {/* Stats band */}
       <section className="border-y border-stone-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 grid grid-cols-3 gap-6">
-          {STATS.map((s) => (
+          {stats.map((s) => (
             <div key={s.label} className="text-center">
               <p className="text-2xl md:text-3xl font-extrabold text-brand-800">{s.value}</p>
               <p className="mt-1 text-xs md:text-sm text-stone-500">{s.label}</p>
@@ -120,7 +126,7 @@ export default function Landing() {
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {featured.map((property) => (
-            <PropertyCard key={property.id} property={property} />
+            <PropertyCard key={property._id} property={property} />
           ))}
         </div>
       </section>
